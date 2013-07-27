@@ -5,6 +5,12 @@
 # takes two arguments: first a log file, then the ip of the camera.
 function checkConnectiviy()
 {
+  if [[ $# != 2 ]]
+  then
+    echo "\a\aUsage error in $FUNCNAME(): number of parameters is wrong.\n"
+    exit
+  fi
+
   logFile=$1
   addy=$2
   # Check to see if camera is up and reachable, -T20 gives wget 20 seconds to
@@ -41,12 +47,12 @@ function log()
 {
   if [[ $# != 2 || $# != 3 ]]
   then
-    echo "\a\aUsage error in log(): number of parameters is wrong.\n"
+    echo "\a\aUsage error in $FUNCNAME(): number of parameters is wrong.\n"
     exit
   fi
 
   logFile=$1
-  [ -f $logFile ] || echo "Log file does not exist.."
+  [ -f $logFile ] || echo "Log file does not exist, creating file <$logFile>"
 
   message=$2
 
