@@ -45,7 +45,7 @@ function checkConnectiviy()
 #
 function log()
 {
-  if [[ $# != 2 || $# != 3 ]]
+  if [[ $# != 2 && $# != 3 ]]
   then
     echo "\a\aUsage error in $FUNCNAME(): number of parameters is wrong.\n"
     exit
@@ -60,7 +60,7 @@ function log()
   then
     toScreen=0
   else
-    toScreen = $3
+    toScreen=$3
   fi
 
   if [ $toScreen == 1 ]
