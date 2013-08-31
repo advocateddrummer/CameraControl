@@ -51,6 +51,6 @@ Disclaimer
 This script has only really been tested for motion/intrusion detection, much of
 the camera movement functionality has not been tested. Any feedback is welcome!
 
-Furthermore, I am barly more than a noob when it comes to bash/wget and I do
+Furthermore, I am barely more than a noob when it comes to bash/wget and I do
 not claim that this code is well written, efficient, or even safe. Again, any
 feedback is welcome.
