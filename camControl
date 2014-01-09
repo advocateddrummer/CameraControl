@@ -88,6 +88,60 @@ logFile="/Users/ehereth/camControl.log"
 log $logFile "\n$basename started at `date`" 0
 log $logFile "[$0 $clps]" 0
 
+# Check for help message and determine if the alarm is being armed; if it is,
+# sleep for 30 seconds otherwise, do not.
+arg=$#
+while [ "$arg" -ne "0" ]; do
+
+  case "$1" in
+
+    alarm)
+      if [ $2 != off ] && [ $2 != on ]
+      then
+        log $logFile "ERROR: bad parameter to $1 ($2)" 1
+        exit
+      fi
+
+      # Record if alarm is being armed or disarmed.
+      [ $2 = off ] && arm=0
+      [ $2 = on ] && arm=1
+      break;;
+
+    # Print help message and exit.
+    h|-h|help|--help)
+      echo "sleep|wait|pause|p|s|w   : requires argument will pause script for X seconds.
+      setup                          : dumps camera setup (as much as 200 lines)
+      gsetup                         : dumps setup but allows you to grep it for keyword. usage: cam gsetup (string)
+      led                            : requires argument 0-2. 2 is off, 0/1 on or flashing
+      snap                           : save snapshot to /sdcard/cam.jpg
+      speed                          : the speed the camera moves. 0-?, 0 is fastest, normal is 2-3
+      ir                             : turns IR on or off, must specify on or off
+      up/down/left/right/stop/center : starts movement, must use separate stop command to stop movement
+      contrast (0-6)                 : must specify number
+      bright (0-16)                  : must specify number 0-16
+      vert/horiz                     : start vert or horiz patrol
+      50/60/out                      : set 50hz, 60hz outdoor mode
+      flip/mirror                    : flip or mirror the image
+      alarm                          : specify on or off
+      mail                           : specify on or off to send email on motion detect
+      mdc                            : specify on or off, specifies motion detection compensation
+      interval                       : image upload interval in seconds, 0 for off, 1 to 65535 for on
+      sense                          : motion sensitivity 0-10, 0 being most sensitive
+      reboot                         : reboots cam
+      set (1-16)                     : set preset
+      go (1-16)                      : go to preset"
+
+      log $logFile "$basename completed at `date`" 1
+      exit;;
+
+    *)
+      shift; arg=$(($arg - 1));;
+
+  esac
+done
+
+set -- $clps # Reset command line parameters.
+
 # Camera address or ip, with or without port.
 # e.g., xxx.xx.xx.xxx:80
 ip[0]="10.0.1.10:8001"
@@ -126,13 +180,20 @@ then
   fi
 else
   wget -q -O - "${addy}/set_misc.cgi?led_mode=2" #turn led off...
-  log $logFile "Password validated\n" 0
+  log $logFile "Password validated\n" 1
 fi
 
 # Location to save snapshot.
 snapfile=""
 ####################################
 ####################################
+
+# Sleep for a while to allow the user to exit premises.
+# Only sleep if arming system.
+if [ $arm = 1 ]
+then
+  sleep 30
+fi
 
 for cam in "${ip[@]}"
 do
@@ -403,28 +464,8 @@ do
         wget -q -O - "${addy}/decoder_control.cgi?command=26"
         shift; arg=$(($arg - 1));;
 
-      h|-h|help|--help|*)
-        echo "sleep|wait|pause|p|s|w   : requires argument will pause script for X seconds.
-        setup                          : dumps camera setup (as much as 200 lines)
-        gsetup                         : dumps setup but allows you to grep it for keyword. usage: cam gsetup (string)
-        led                            : requires argument 0-2. 2 is off, 0/1 on or flashing
-        snap                           : save snapshot to /sdcard/cam.jpg
-        speed                          : the speed the camera moves. 0-?, 0 is fastest, normal is 2-3
-        ir                             : turns IR on or off, must specify on or off
-        up/down/left/right/stop/center : starts movement, must use separate stop command to stop movement
-        contrast (0-6)                 : must specify number
-        bright (0-16)                  : must specify number 0-16
-        vert/horiz                     : start vert or horiz patrol
-        50/60/out                      : set 50hz, 60hz outdoor mode
-        flip/mirror                    : flip or mirror the image
-        alarm                          : specify on or off
-        mail                           : specify on or off to send email on motion detect
-        mdc                            : specify on or off, specifies motion detection compensation
-        interval                       : image upload interval in seconds, 0 for off, 1 to 65535 for on
-        sense                          : motion sensitivity 0-10, 0 being most sensitive
-        reboot                         : reboots cam
-        set (1-16)                     : set preset
-        go (1-16)                      : go to preset"
+      *)
+        log $logFile "Unhandled parameter $1" 1
         shift; arg=$(($arg - 1));;
 
     esac
